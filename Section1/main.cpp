@@ -1,38 +1,46 @@
 #include <iostream>
-bool isPrime(int x);
-int readNumber();
 
-/* Reads in a single digit and determines
- * whether the digit is prime.
-*/
+double readNumber();
+char readOperation();
+void answer(double x, double y, char op);
+
+
+
 int main()
 {
-	int input = readNumber();
-	if (isPrime(input))
-		std::cout << "The digit is prime";
-	else
-		std::cout << "The digis is not prime";
+	double x = readNumber();
+	double y = readNumber();
+	char op = readOperation();
+	answer(x, y, op);
 	return 0;
 }
 
-bool isPrime(int x)
+double readNumber()
 {
-	if (x == 2)
-		return true;
-	else if (x == 3)
-		return true;
-	else if (x == 5)
-		return true;
-	else if (x == 7)
-		return true;
-	else
-		return false;
-}
-
-int readNumber()
-{
-	std::cout << "Enter a single-digit integer: ";
-	int input;
+	std::cout << "Enter a double value: ";
+	double input;
 	std::cin >> input;
 	return input;
+}
+
+char readOperation()
+{
+	std::cout << "Enter one of the following: +, -, *, or /: ";
+	char input;
+	std::cin >> input;
+	return input;
+}
+
+void answer(double x, double y, char op)
+{
+	double ans;
+	if (op == '+')
+		 ans = x + y;
+	else if (op == '-')
+		ans = x - y;
+	else if (op == '*')
+		ans = x * y;
+	else if (op == '/')
+		ans = x / y;
+	std::cout << x << " " << op << " " << y << " is " << ans << std::endl;
 }
