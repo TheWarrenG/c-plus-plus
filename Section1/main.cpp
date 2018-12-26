@@ -1,46 +1,52 @@
 #include <iostream>
+#include "constants.h"
 
-double readNumber();
-char readOperation();
-void answer(double x, double y, char op);
+double readHeight();
+double calculateHeight(int time, double initialHeight);
 
-
+void printHeight(int time, double height);
+void calculateAndPrintHeight(int time, double height);
 
 int main()
 {
-	double x = readNumber();
-	double y = readNumber();
-	char op = readOperation();
-	answer(x, y, op);
+	double initialHeight = readHeight();
+	calculateAndPrintHeight(0, initialHeight);
+	calculateAndPrintHeight(1, initialHeight);
+	calculateAndPrintHeight(2, initialHeight);
+	calculateAndPrintHeight(3, initialHeight);
+	calculateAndPrintHeight(4, initialHeight);
+	calculateAndPrintHeight(5, initialHeight);
 	return 0;
 }
 
-double readNumber()
+double readHeight()
 {
-	std::cout << "Enter a double value: ";
+	std::cout << "Enter the height of the tower in meters: ";
 	double input;
 	std::cin >> input;
 	return input;
 }
 
-char readOperation()
+double calculateHeight(int time, double initialHeight)
 {
-	std::cout << "Enter one of the following: +, -, *, or /: ";
-	char input;
-	std::cin >> input;
-	return input;
+	double heightChange = 0.5 * myConstants::gravity * time * time;
+	double finalHeight = initialHeight - heightChange;
+	return finalHeight;
 }
 
-void answer(double x, double y, char op)
+void printHeight(int time, double height)
 {
-	double ans;
-	if (op == '+')
-		 ans = x + y;
-	else if (op == '-')
-		ans = x - y;
-	else if (op == '*')
-		ans = x * y;
-	else if (op == '/')
-		ans = x / y;
-	std::cout << x << " " << op << " " << y << " is " << ans << std::endl;
+	if (height > 0)
+	{
+		std::cout << "At " << time << " seconds, the ball is at height: " <<
+			height << " meters" << std::endl;
+	}
+	else
+		std::cout << "At " << time << " seconds, the ball is on the ground.";
+}
+
+void calculateAndPrintHeight(int time, double height)
+{
+	double finalHeight = calculateHeight(time, height);
+	printHeight(time, finalHeight);
 }
