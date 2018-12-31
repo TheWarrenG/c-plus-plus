@@ -1,48 +1,54 @@
-#include <string>
 #include <iostream>
+#include "constants.h"
 
-enum monsterType
+// gets initial height from user and returns it
+double getInitialHeight()
 {
-	MONSTER_OGRE,
-	MONSTER_DRAGON,
-	MONSTER_ORC,
-	MONSTER_GIANT_SPIDER,
-	MONSTER_SLIME
-};
+	std::cout << "Enter the height of the tower in meters: ";
+	double initialHeight;
+	std::cin >> initialHeight;
+	return initialHeight;
+}
 
-struct Monster
+// Returns height from ground after "secondsPassed" seconds
+double calculateHeight(double initialHeight, int secondsPassed)
 {
-	monsterType type;
-	std::string name;
-	int damage;
-};
+	// Using formula: [ s = u * t + (a * t^2) / 2 ], here u(initial velocity) = 0
+	double distanceFallen = (myConstants::gravity * secondsPassed * secondsPassed) / 2;
+	double currentHeight = initialHeight - distanceFallen;
 
-void printMonster(Monster monster)
+	return currentHeight;
+}
+
+// Prints height every second till ball has reached the ground
+void printHeight(double height, int secondsPassed)
 {
-	std::string type;
-	if (monster.type == MONSTER_OGRE)
-		type = "Ogre";
-	else if (monster.type == MONSTER_DRAGON)
-		type = "Dragon";
-	else if (monster.type == MONSTER_ORC)
-		type = "Orc";
-	else if (monster.type == MONSTER_GIANT_SPIDER)
-		type = "Giant Spider";
-	else if (monster.type == MONSTER_SLIME)
-		type = "Slime";
+	if (height > 0.0)
+	{
+		std::cout << "At " << secondsPassed << " seconds, the ball is at height:\t" << height <<
+			" meters\n";
+	}
 	else
-		type = "Unknown";
-	std::cout << "This " << type << " is named " <<
-		monster.name << " and has " << monster.damage << " health.\n";
+		std::cout << "At " << secondsPassed << " seconds, the ball is on the ground.\n";
+}
+
+double calculateAndPrintHeight(double initialHeight, int secondsPassed)
+{
+	double height = calculateHeight(initialHeight, secondsPassed);
+	printHeight(height, secondsPassed);
+	return height;
 }
 
 int main()
 {
-	Monster ogre = { MONSTER_OGRE, "Torg", 145 };
-	Monster slime = { MONSTER_SLIME, "Blurp", 23 };
+	const double initialHeight = getInitialHeight();
+	int time(0);
+	double height(initialHeight);
+	do
+	{
+		height = calculateAndPrintHeight(height, time);
+		++time;
+	} while (height > 0);
 
-	printMonster(ogre);
-	printMonster(slime);
-	
 	return 0;
 }
