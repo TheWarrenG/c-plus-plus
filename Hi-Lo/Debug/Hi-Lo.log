@@ -1,0 +1,3 @@
+﻿  Hi-Lo.cpp
+c:\users\jenny\desktop\warren\programs\c-plus-plus\hi-lo\hi-lo.cpp(50): warning C4101: 'guess': unreferenced local variable
+  Hi-Lo.vcxproj -> C:\Users\Jenny\Desktop\Warren\Programs\c-plus-plus\Hi-Lo\Debug\Hi-Lo.exe
