@@ -7,17 +7,16 @@
 // binarySearch() should return the index of the target element if the target is found, -1 otherwise
 int binarySearch(int *array, int target, int min, int max)
 {
-	while (min <= max)
-	{
-		int test{ min + (min + max) / 2 };
-		if (array[test] == target)
-			return test;
-		else if (array[test] > target)
-			max = test;
-		else
-			min = test;
-	}
-	return -1;
+	if (min > max)
+		return -1;
+	
+	int test{ min + (max - min) / 2 };
+	if (array[test] == target)
+		return test;
+	else if (array[test] > target)
+		return binarySearch(array, target, min, test - 1);
+	else
+		return binarySearch(array, target, test + 1, max);
 }
 
 int main()
