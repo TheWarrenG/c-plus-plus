@@ -1,214 +1,242 @@
 #include <iostream>
-#include <string>
-#include <utility>
 #include <array>
-#include <random>
 #include <ctime>
+#include <cstdlib>
 
-enum CardRank
+class Card
 {
-	RANK_2, RANK_3, RANK_4,
-	RANK_5, RANK_6, RANK_7,
-	RANK_8, RANK_9, RANK_10,
-	RANK_JACK, RANK_QUEEN,
-	RANK_KING, RANK_ACE,
-	MAX_RANKS
+public:
+	enum CardSuit
+	{
+		SUIT_CLUB,
+		SUIT_DIAMOND,
+		SUIT_HEART,
+		SUIT_SPADE,
+		MAX_SUITS
+	};
+
+	enum CardRank
+	{
+		RANK_2,
+		RANK_3,
+		RANK_4,
+		RANK_5,
+		RANK_6,
+		RANK_7,
+		RANK_8,
+		RANK_9,
+		RANK_10,
+		RANK_JACK,
+		RANK_QUEEN,
+		RANK_KING,
+		RANK_ACE,
+		MAX_RANKS
+	};
+
+private:
+	CardRank m_rank;
+	CardSuit m_suit;
+
+public:
+	Card(CardRank rank = MAX_RANKS, CardSuit suit = MAX_SUITS) :
+		m_rank{ rank }, m_suit{ suit }
+	{
+
+	}
+	
+	void printCard() const
+	{
+		switch (m_rank)
+		{
+		case RANK_2:		std::cout << '2'; break;
+		case RANK_3:		std::cout << '3'; break;
+		case RANK_4:		std::cout << '4'; break;
+		case RANK_5:		std::cout << '5'; break;
+		case RANK_6:		std::cout << '6'; break;
+		case RANK_7:		std::cout << '7'; break;
+		case RANK_8:		std::cout << '8'; break;
+		case RANK_9:		std::cout << '9'; break;
+		case RANK_10:		std::cout << 'T'; break;
+		case RANK_JACK:		std::cout << 'J'; break;
+		case RANK_QUEEN:	std::cout << 'Q'; break;
+		case RANK_KING:		std::cout << 'K'; break;
+		case RANK_ACE:		std::cout << 'A'; break;
+		}
+
+		switch (m_suit)
+		{
+		case SUIT_CLUB:		std::cout << 'C'; break;
+		case SUIT_DIAMOND:	std::cout << 'D'; break;
+		case SUIT_HEART:	std::cout << 'H'; break;
+		case SUIT_SPADE:	std::cout << 'S'; break;
+		}
+	}
+
+	int getCardValue() const
+	{
+		switch (m_rank)
+		{
+		case RANK_2:		return 2;
+		case RANK_3:		return 3;
+		case RANK_4:		return 4;
+		case RANK_5:		return 5;
+		case RANK_6:		return 6;
+		case RANK_7:		return 7;
+		case RANK_8:		return 8;
+		case RANK_9:		return 9;
+		case RANK_10:		return 10;
+		case RANK_JACK:		return 10;
+		case RANK_QUEEN:	return 10;
+		case RANK_KING:		return 10;
+		case RANK_ACE:		return 11;
+		}
+
+		return 0;
+	}
 };
 
-enum CardSuit
+class Deck
 {
-	SUIT_CLUBS,
-	SUIT_DIAMONDS,
-	SUIT_HEARTS,
-	SUIT_SPADES,
-	MAX_SUITS
+private:
+	std::array<Card, 52> m_deck;
+
+public:
+	Deck()
+	{
+		srand(static_cast<unsigned int>(time(0))); // set initial seed value to system clock
+		rand(); // If using Visual Studio, discard first random value
+
+		// Initialize each card in the deck.
+		int card = 0;
+		for (int suit = 0; suit < Card::MAX_SUITS; ++suit)
+			for (int rank = 0; rank < Card::MAX_RANKS; ++rank)
+			{
+				m_deck[card] = Card(static_cast<Card::CardRank>(rank), static_cast<Card::CardSuit>(suit));
+				++card;
+			}
+	}
+
+	void printDeck() const
+	{
+		for (const auto &card : m_deck)
+		{
+			card.printCard();
+			std::cout << ' ';
+		}
+
+		std::cout << '\n';
+	}
+
+	void shuffleDeck()
+	{
+		// Step through each card in the deck
+		for (int index = 0; index < 52; ++index)
+		{
+			// Pick a random card, any card
+			int swapIndex = getRandomNumber(0, 51);
+			// Swap it with the current card
+			swapCard(m_deck[index], m_deck[swapIndex]);
+		}
+	}
+
+private:
+	void swapCard(Card &a, Card &b) const
+	{
+		Card temp = a;
+		a = b;
+		b = temp;
+	}
+
+	// Generate a random number between min and max (inclusive)
+	// Assumes srand() has already been called
+	int getRandomNumber(int min, int max) const
+	{
+		static const double fraction = 1.0 / (static_cast<double>(RAND_MAX) + 1.0);  // static used for efficiency, so we only calculate this value once
+		// evenly distribute the random number across our range
+		return static_cast<int>(rand() * fraction * (max - min + 1) + min);
+	}
 };
 
-struct Card
+int main()
 {
-	CardRank rank;
-	CardSuit suit;
-};
+	srand(static_cast<unsigned int>(time(0))); // set initial seed value to system clock
+	rand(); // If using Visual Studio, discard first random value
 
-void printCard(const Card &card)
-{
-	char rank;
-	switch (card.rank)
-	{
-	case(RANK_2):		rank = '2'; break;
-	case(RANK_3):		rank = '3'; break;
-	case(RANK_4):		rank = '4'; break;
-	case(RANK_5):		rank = '5'; break;
-	case(RANK_6):		rank = '6'; break;
-	case(RANK_7):		rank = '7'; break;
-	case(RANK_8):		rank = '8'; break;
-	case(RANK_9):		rank = '9'; break;
-	case(RANK_10):		rank = 'T'; break;
-	case(RANK_JACK):	rank = 'J'; break;
-	case(RANK_QUEEN):	rank = 'Q'; break;
-	case(RANK_KING):	rank = 'K'; break;
-	case(RANK_ACE):		rank = 'A'; break;
-	}
-
-	char suit;
-	switch (card.suit)
-	{
-	case(SUIT_CLUBS):		suit = 'C';	break;
-	case(SUIT_DIAMONDS):	suit = 'D';	break;
-	case(SUIT_HEARTS):		suit = 'H';	break;
-	case(SUIT_SPADES):		suit = 'S';	break;
-	}
-	std::cout << rank << suit;
-}
-
-void printDeck(const std::array<Card, 52> &deck)
-{
-	for (const auto &card : deck)
-	{
-		printCard(card);
-		std::cout << ' ';
-	}
-	std::cout << '\n';
-}
-
-void swapCard(Card &x, Card &y)
-{
-	Card temp = x;
-	x = y;
-	y = temp;
-}
-
-void shuffleDeck(std::array<Card, 52> &deck)
-{
-	using index_t = std::array<Card, 52>::size_type;
-	std::mt19937 mersenne(static_cast<unsigned int>(std::time(nullptr)));
-	std::uniform_int_distribution<> die(0, 51);
-
-	for (index_t deckIndex = 0; deckIndex < 52; ++deckIndex)
-	{
-		int swapIndex = die(mersenne);
-		swapCard(deck[deckIndex], deck[swapIndex]);
-	}
-}
-
-int getCardValue(const Card &card)
-{
-	switch (card.rank)
-	{
-	case(RANK_2):		return 2;
-	case(RANK_3):		return 3;
-	case(RANK_4):		return 4;
-	case(RANK_5):		return 5;
-	case(RANK_6):		return 6;
-	case(RANK_7):		return 7;
-	case(RANK_8):		return 8;
-	case(RANK_9):		return 9;
-	case(RANK_10):		return 10;
-	case(RANK_JACK):	return 10;
-	case(RANK_QUEEN):	return 10;
-	case(RANK_KING):	return 10;
-	case(RANK_ACE):		return 11;
-	}
+	Deck deck;
+	deck.printDeck();
+	deck.shuffleDeck();
+	deck.printDeck();
 
 	return 0;
 }
+/*
 
-void addScore(int &score, Card* &cardPtr, int &numAces)
+char getPlayerChoice()
 {
-	int scoreChange = getCardValue(*cardPtr++);
-	if (scoreChange == 11)
-		numAces += 1;
-	score += scoreChange;
-	while (score > 21 && numAces > 0)
+	std::cout << "(h) to hit, or (s) to stand: ";
+	char choice;
+	do
 	{
-		score -= 10;
-		numAces -= 1;
-	}
+		std::cin >> choice;
+	} while (choice != 'h' && choice != 's');
+
+	return choice;
 }
 
-void playBlackjack(std::array<Card, 52> &deck)
+bool playBlackjack(const std::array<Card, 52> deck)
 {
-	Card *cardPtr = &(deck[0]);
+	// Set up the initial game state
+	const Card *cardPtr = &deck[0];
 
-	int dealerScore{ 0 };
-	int playerScore{ 0 };
-	int playerAces{ 0 };
-	int dealerAces{ 0 };
+	int playerTotal = 0;
+	int dealerTotal = 0;
 
-	addScore(dealerScore, cardPtr, dealerAces);
-	addScore(playerScore, cardPtr, playerAces);
-	addScore(playerScore, cardPtr, playerAces);
-	
-	std::cout << "Let's play one round of Blackjack!\n";
-	std::cout << "Your current score is: " << playerScore << '\n';
-	std::cout << "The dealer's current score is: " << dealerScore << '\n';
-	while (playerScore < 21)
+	// Deal the dealer one card
+	dealerTotal += getCardValue(*cardPtr++);
+	std::cout << "The dealer is showing: " << dealerTotal << '\n';
+
+	// Deal the player two cards
+	playerTotal += getCardValue(*cardPtr++);
+	playerTotal += getCardValue(*cardPtr++);
+
+	// Player goes first
+	while (1)
 	{
-		std::string playerAction;
-		do
-		{
-			std::cout << "Would you like to hit or stand? ";
-			std::cin >> playerAction;
-		} while (playerAction != "hit" && playerAction != "stand");
-
-		if (playerAction == "hit")
-		{
-			addScore(playerScore, cardPtr, playerAces);
-			std::cout << "Your current score is: " << playerScore << '\n';
-		}
-		else
+		std::cout << "You have: " << playerTotal << '\n';
+		char choice = getPlayerChoice();
+		if (choice == 's')
 			break;
+
+		playerTotal += getCardValue(*cardPtr++);
+
+		// See if the player busted
+		if (playerTotal > 21)
+			return false;
 	}
 
-	if (playerScore > 21)
+	// If player hasn't busted, dealer goes until he has at least 17 points
+	while (dealerTotal < 17)
 	{
-		std::cout << "You bust! Dealer wins.\n";
-		return;
+		dealerTotal += getCardValue(*cardPtr++);
+		std::cout << "The dealer now has: " << dealerTotal << '\n';
 	}
 
-	while (dealerScore < 17)
-	{
-		addScore(dealerScore, cardPtr, dealerAces);
-		std::cout << "The dealer's current score is: " << dealerScore << '\n';
-	}
+	// If dealer busted, player wins
+	if (dealerTotal > 21)
+		return true;
 
-	if (dealerScore > 21)
-	{
-		std::cout << "Dealer busts! You win.\n";
-		return;
-	}
-	else if (playerScore > dealerScore)
-	{
-		std::cout << "You win!\n";
-		return;
-	}
-	else if (playerScore == dealerScore)
-	{
-		std::cout << "You tie!\n";
-		return;
-	}
-	else {
-		std::cout << "Dealer wins! You lose.\n";
-		return;
-	}
+	return (playerTotal > dealerTotal);
 }
 
 int main()
 {
-	std::array<Card, 52> deck;
-	using index_t = std::array<Card, 52>::size_type;
-	index_t deckIndex{ 0 };
-	for (int rankIndex = 0; rankIndex < MAX_RANKS; ++rankIndex)
-	{
-		for (int suitIndex = 0; suitIndex < MAX_SUITS; ++suitIndex)
-		{
-			deck[deckIndex] = { static_cast<CardRank>(rankIndex), static_cast<CardSuit>(suitIndex) };
-			++deckIndex;
-		}
-	}
 
 	shuffleDeck(deck);
-	playBlackjack(deck);
+
+	if (playBlackjack(deck))
+		std::cout << "You win!\n";
+	else
+		std::cout << "You lose!\n";
 
 	return 0;
-}
+} */
