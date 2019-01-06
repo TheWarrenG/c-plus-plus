@@ -2,6 +2,7 @@
 #include <array>
 #include <ctime>
 #include <cstdlib>
+#include <cassert>
 
 class Card
 {
@@ -99,13 +100,27 @@ class Deck
 {
 private:
 	std::array<Card, 52> m_deck;
+	int m_cardIndex{ 0 };
+
+	// Generate a random number between min and max (inclusive)
+	// Assumes srand() has already been called
+	static int getRandomNumber(int min, int max)
+	{
+		static const double fraction = 1.0 / (static_cast<double>(RAND_MAX) + 1.0);
+		// evenly distribute the random number across our range
+		return static_cast<int>(rand() * fraction * (max - min + 1) + min);
+	}
+
+	static void swapCard(Card &a, Card &b)
+	{
+		Card temp = a;
+		a = b;
+		b = temp;
+	}
 
 public:
 	Deck()
 	{
-		srand(static_cast<unsigned int>(time(0))); // set initial seed value to system clock
-		rand(); // If using Visual Studio, discard first random value
-
 		// Initialize each card in the deck.
 		int card = 0;
 		for (int suit = 0; suit < Card::MAX_SUITS; ++suit)
@@ -137,23 +152,14 @@ public:
 			// Swap it with the current card
 			swapCard(m_deck[index], m_deck[swapIndex]);
 		}
+
+		m_cardIndex = 0;
 	}
 
-private:
-	void swapCard(Card &a, Card &b) const
+	Card& dealCard()
 	{
-		Card temp = a;
-		a = b;
-		b = temp;
-	}
-
-	// Generate a random number between min and max (inclusive)
-	// Assumes srand() has already been called
-	int getRandomNumber(int min, int max) const
-	{
-		static const double fraction = 1.0 / (static_cast<double>(RAND_MAX) + 1.0);  // static used for efficiency, so we only calculate this value once
-		// evenly distribute the random number across our range
-		return static_cast<int>(rand() * fraction * (max - min + 1) + min);
+		assert(m_cardIndex < 52);
+		return m_deck[m_cardIndex++];
 	}
 };
 
@@ -163,9 +169,10 @@ int main()
 	rand(); // If using Visual Studio, discard first random value
 
 	Deck deck;
-	deck.printDeck();
 	deck.shuffleDeck();
 	deck.printDeck();
+	std::cout << "The first card has value: " << deck.dealCard().getCardValue() << '\n';
+	std::cout << "The second card has value: " << deck.dealCard().getCardValue() << '\n';
 
 	return 0;
 }
