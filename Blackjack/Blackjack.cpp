@@ -4,6 +4,7 @@
 #include <random>
 #include <cassert>
 
+// A card that can be found in a standard deck of 52 cards.
 class Card
 {
 public:
@@ -96,24 +97,14 @@ public:
 	}
 };
 
+// A standard deck of 52 cards.
 class Deck
 {
 private:
 	std::array<Card, 52> m_deck;
 	int m_cardIndex{ 0 };
-
-	// Generate a random number between min and max (inclusive).
-	static int getRandomNumber(int min, int max)
-	{
-		// Initialize our mersenne twister with a random seed based on the clock.
-		std::mt19937 mersenne(static_cast<unsigned int>(std::time(nullptr)));
-
-		// Create a reusable random number generator that generates uniform numbers between MIN and MAX.
-		std::uniform_int_distribution<> die(min, max);
-
-		return die(mersenne);
-	}
-
+	
+	// Swap the value of two cards.
 	static void swapCard(Card &a, Card &b)
 	{
 		Card temp = a;
@@ -134,6 +125,7 @@ public:
 			}
 	}
 
+	// Prints the deck in two letter codes.
 	void printDeck() const
 	{
 		for (const auto &card : m_deck)
@@ -145,13 +137,20 @@ public:
 		std::cout << '\n';
 	}
 
+	// Returns a permutation of the deck.
 	void shuffleDeck()
 	{
+		// Initialize our mersenne twister with a random seed based on the clock.
+		std::mt19937 mersenne(static_cast<unsigned int>(std::time(nullptr)));
+
+		// Create a reusable random number generator that generates uniform numbers between MIN and MAX.
+		std::uniform_int_distribution<> die(0, 51);
+
 		// Step through each card in the deck.
 		for (int index = 0; index < 52; ++index)
 		{
 			// Pick a random card.
-			int swapIndex = getRandomNumber(0, 51);
+			int swapIndex = die(mersenne);
 			// Swap it with the current card.
 			swapCard(m_deck[index], m_deck[swapIndex]);
 		}
@@ -166,6 +165,13 @@ public:
 	}
 };
 
+// The possible results of a game of Blackjack.
+enum class gameResults
+{
+	LOSS,
+	TIE,
+	WIN
+};
 // Reads player's decision to hit or stand for one turn.
 char getPlayerChoice()
 {
@@ -190,8 +196,8 @@ void dealCard(Deck &deck, int &score, int &numAces)
 	}
 }
 
-// Plays one round of blackjack. Returns whether the player won.
-bool playBlackjack(Deck &deck)
+// Plays one round of Blackjack with DECK. Returns result of game.
+gameResults playBlackjack(Deck &deck)
 {
 	// Set up the initial game state.
 	int playerTotal{ 0 };
@@ -219,7 +225,10 @@ bool playBlackjack(Deck &deck)
 
 		// See if the player busted.
 		if (playerTotal > 21)
-			return false;
+		{
+			std::cout << "You have: " << playerTotal << '\n';
+			return gameResults::LOSS;
+		}
 	}
 
 	// If player hasn't busted, dealer goes until he has at least 17 points.
@@ -231,21 +240,44 @@ bool playBlackjack(Deck &deck)
 
 	// If dealer busted, player wins.
 	if (dealerTotal > 21)
-		return true;
-
-	return (playerTotal > dealerTotal);
+		return gameResults::WIN;
+	else if (playerTotal > dealerTotal)
+		return gameResults::WIN;
+	else if (playerTotal < dealerTotal)
+		return gameResults::LOSS;
+	else
+		return gameResults::TIE;
 }
 
 int main()
 {
 	Deck deck{};
-	deck.shuffleDeck();
-	deck.printDeck();
 
-	if (playBlackjack(deck))
-		std::cout << "You win!\n";
-	else
-		std::cout << "You lose!\n";
+	do
+	{
+		deck.shuffleDeck();
+		gameResults result{ playBlackjack(deck) };
+
+		switch (result)
+		{
+		case(gameResults::WIN):		std::cout << "You win!\n"; break;
+		case(gameResults::LOSS):	std::cout << "You lose!\n"; break;
+		case(gameResults::TIE):		std::cout << "Push!\n"; break;
+		}
+
+		char ans;
+		do
+		{
+			std::cout << "Would you like to play again? (y/n) ";
+			std::cin >> ans;
+			std::cin.ignore(32767, '\n');
+		} while (ans != 'y' && ans != 'n');
+
+		if (ans == 'n')
+			break;
+	} while (true);
+
+	std::cout << "Thank you for playing!\n";
 
 	return 0;
 }
