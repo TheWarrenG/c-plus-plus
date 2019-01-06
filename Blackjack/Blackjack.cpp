@@ -1,7 +1,7 @@
 #include <iostream>
 #include <array>
 #include <ctime>
-#include <cstdlib>
+#include <random>
 #include <cassert>
 
 class Card
@@ -102,13 +102,16 @@ private:
 	std::array<Card, 52> m_deck;
 	int m_cardIndex{ 0 };
 
-	// Generate a random number between min and max (inclusive)
-	// Assumes srand() has already been called
+	// Generate a random number between min and max (inclusive).
 	static int getRandomNumber(int min, int max)
 	{
-		static const double fraction = 1.0 / (static_cast<double>(RAND_MAX) + 1.0);
-		// evenly distribute the random number across our range
-		return static_cast<int>(rand() * fraction * (max - min + 1) + min);
+		// Initialize our mersenne twister with a random seed based on the clock.
+		std::mt19937 mersenne(static_cast<unsigned int>(std::time(nullptr)));
+
+		// Create a reusable random number generator that generates uniform numbers between MIN and MAX.
+		std::uniform_int_distribution<> die(min, max);
+
+		return die(mersenne);
 	}
 
 	static void swapCard(Card &a, Card &b)
@@ -144,40 +147,26 @@ public:
 
 	void shuffleDeck()
 	{
-		// Step through each card in the deck
+		// Step through each card in the deck.
 		for (int index = 0; index < 52; ++index)
 		{
-			// Pick a random card, any card
+			// Pick a random card.
 			int swapIndex = getRandomNumber(0, 51);
-			// Swap it with the current card
+			// Swap it with the current card.
 			swapCard(m_deck[index], m_deck[swapIndex]);
 		}
 
 		m_cardIndex = 0;
 	}
 
-	Card& dealCard()
+	const Card& dealCard()
 	{
 		assert(m_cardIndex < 52);
 		return m_deck[m_cardIndex++];
 	}
 };
 
-int main()
-{
-	srand(static_cast<unsigned int>(time(0))); // set initial seed value to system clock
-	rand(); // If using Visual Studio, discard first random value
-
-	Deck deck;
-	deck.shuffleDeck();
-	deck.printDeck();
-	std::cout << "The first card has value: " << deck.dealCard().getCardValue() << '\n';
-	std::cout << "The second card has value: " << deck.dealCard().getCardValue() << '\n';
-
-	return 0;
-}
-/*
-
+// Reads player's decision to hit or stand for one turn.
 char getPlayerChoice()
 {
 	std::cout << "(h) to hit, or (s) to stand: ";
@@ -190,23 +179,35 @@ char getPlayerChoice()
 	return choice;
 }
 
-bool playBlackjack(const std::array<Card, 52> deck)
+// Deals card from DECK and adds card value to SCORE.
+void dealCard(Deck &deck, int &score, int &numAces)
 {
-	// Set up the initial game state
-	const Card *cardPtr = &deck[0];
+	score += deck.dealCard().getCardValue();
+	while (score > 21 && numAces > 0)
+	{
+		score -= 10;
+		numAces -= 1;
+	}
+}
 
-	int playerTotal = 0;
-	int dealerTotal = 0;
+// Plays one round of blackjack. Returns whether the player won.
+bool playBlackjack(Deck &deck)
+{
+	// Set up the initial game state.
+	int playerTotal{ 0 };
+	int dealerTotal{ 0 };
+	int playerAces{ 0 };
+	int dealerAces{ 0 };
 
-	// Deal the dealer one card
-	dealerTotal += getCardValue(*cardPtr++);
+	// Deal the dealer one card.
+	dealCard(deck, dealerTotal, dealerAces);
 	std::cout << "The dealer is showing: " << dealerTotal << '\n';
 
-	// Deal the player two cards
-	playerTotal += getCardValue(*cardPtr++);
-	playerTotal += getCardValue(*cardPtr++);
+	// Deal the player two cards.
+	dealCard(deck, playerTotal, playerAces);
+	dealCard(deck, playerTotal, playerAces);
 
-	// Player goes first
+	// Player goes first.
 	while (1)
 	{
 		std::cout << "You have: " << playerTotal << '\n';
@@ -214,21 +215,21 @@ bool playBlackjack(const std::array<Card, 52> deck)
 		if (choice == 's')
 			break;
 
-		playerTotal += getCardValue(*cardPtr++);
+		dealCard(deck, playerTotal, playerAces);
 
-		// See if the player busted
+		// See if the player busted.
 		if (playerTotal > 21)
 			return false;
 	}
 
-	// If player hasn't busted, dealer goes until he has at least 17 points
+	// If player hasn't busted, dealer goes until he has at least 17 points.
 	while (dealerTotal < 17)
 	{
-		dealerTotal += getCardValue(*cardPtr++);
+		dealCard(deck, dealerTotal, dealerAces);
 		std::cout << "The dealer now has: " << dealerTotal << '\n';
 	}
 
-	// If dealer busted, player wins
+	// If dealer busted, player wins.
 	if (dealerTotal > 21)
 		return true;
 
@@ -237,8 +238,9 @@ bool playBlackjack(const std::array<Card, 52> deck)
 
 int main()
 {
-
-	shuffleDeck(deck);
+	Deck deck{};
+	deck.shuffleDeck();
+	deck.printDeck();
 
 	if (playBlackjack(deck))
 		std::cout << "You win!\n";
@@ -246,4 +248,4 @@ int main()
 		std::cout << "You lose!\n";
 
 	return 0;
-} */
+}
