@@ -1,93 +1,73 @@
 #include <iostream>
-#include <string>
-#include <ctime> // for time()
-#include <cstdlib> // for rand() and srand()
 
-class Monster
+class Fraction
 {
-public:
-	enum MonsterType
-	{
-		DRAGON,
-		GOBLIN,
-		OGRE,
-		ORC,
-		SKELETON,
-		TROLL,
-		VAMPIRE,
-		ZOMBIE,
-		MAX_MONSTER_TYPES
-	};
-
 private:
+	int m_numerator;
+	int m_denominator;
 
-	MonsterType m_type;
-	std::string m_name;
-	std::string m_roar;
-	int m_hitPoints;
+	static int gcd(int a, int b) {
+		return (b == 0) ? (a > 0 ? a : -a) : gcd(b, a % b);
+	}
+
+	void reduce()
+	{
+		int gcd{ Fraction::gcd(m_numerator, m_denominator) };
+		m_numerator /= gcd;
+		m_denominator /= gcd;
+	}
 
 public:
-
-	Monster(MonsterType type, std::string name, std::string roar, int hitPoints)
-		: m_type{ type }, m_name{ name }, m_roar{ roar }, m_hitPoints{ hitPoints }
+	Fraction(int numerator = 0, int denominator = 1) :
+		m_numerator{ numerator }, m_denominator{ denominator }
 	{
-
+		reduce();
 	}
 
-	std::string getTypeString(MonsterType type) const
-	{
-		switch (type)
-		{
-		case Monster::DRAGON:		return "dragon";
-		case Monster::GOBLIN:		return "goblin";
-		case Monster::OGRE:			return "ogre";
-		case Monster::ORC:			return "orc";
-		case Monster::SKELETON:		return "skeleton";
-		case Monster::TROLL:		return "troll";
-		case Monster::VAMPIRE:		return "vampire";
-		case Monster::ZOMBIE:		return "zombie";
-		default:					return "???";
-		}
-	}
+	friend Fraction operator*(const Fraction &x, const Fraction &y);
+	friend Fraction operator*(const Fraction &x, int y);
+	friend Fraction operator*(int x, const Fraction &y);
 
 	void print() const
 	{
-		std::cout << m_name << " the " << getTypeString(m_type) << " has " << m_hitPoints
-			<< " hitpoints and says " << m_roar << "\n";
+		std::cout << m_numerator << "/" << m_denominator << "\n";
 	}
 };
 
-class MonsterGenerator
+Fraction operator*(const Fraction &x, const Fraction &y)
 {
-public:
-	// Generate a random number between min and max (inclusive)
-	// Assumes srand() has already been called
-	static int getRandomNumber(int min, int max)
-	{
-		static const double fraction = 1.0 / (static_cast<double>(RAND_MAX) + 1.0);  // static used for efficiency, so we only calculate this value once
-		// evenly distribute the random number across our range
-		return static_cast<int>(rand() * fraction * (max - min + 1) + min);
-	}
+	int numerator{ x.m_numerator * y.m_numerator };
+	int denominator{ x.m_denominator * y.m_denominator };
+	return Fraction(numerator, denominator);
+}
 
-	static Monster generateMonster()
-	{
-		Monster::MonsterType type{ static_cast<Monster::MonsterType>(getRandomNumber(0, Monster::MAX_MONSTER_TYPES - 1)) };
-		int hitPoints { getRandomNumber(1, 100) };
+Fraction operator*(const Fraction &x, int y)
+{
+	return Fraction(x.m_numerator * y, x.m_denominator);
+}
 
-		static std::string s_names[6]{ "Deathwing", "Millhouse Manastorm", "Flowey", "Shrek", "Sans", "Papyrus" };
-		static std::string s_roar[6]{ "*rawr*", "*rattle*", "*jajaja*", "*kuku*", "*meow*", "*agh*" };
-
-		return Monster(type, s_names[getRandomNumber(0, 5)], s_roar[getRandomNumber(0, 5)], hitPoints);
-	}
-};
+Fraction operator*(int x, const Fraction &y)
+{
+	return operator*(y, x);
+}
 
 int main()
 {
-	srand(static_cast<unsigned int>(time(0))); // set initial seed value to system clock
-	rand(); // If using Visual Studio, discard first random value
+	Fraction f1(2, 5);
+	f1.print();
 
-	Monster m = MonsterGenerator::generateMonster();
-	m.print();
+	Fraction f2(3, 8);
+	f2.print();
 
-	return 0;
+	Fraction f3 = f1 * f2;
+	f3.print();
+
+	Fraction f4 = f1 * 2;
+	f4.print();
+
+	Fraction f5 = 2 * f2;
+	f5.print();
+
+	Fraction f6 = Fraction(1, 2) * Fraction(2, 3) * Fraction(3, 4);
+	f6.print();
 }
