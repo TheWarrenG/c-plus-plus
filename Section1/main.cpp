@@ -1,73 +1,61 @@
 #include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
 
-class Fraction
+class Car
 {
 private:
-	int m_numerator;
-	int m_denominator;
-
-	static int gcd(int a, int b) {
-		return (b == 0) ? (a > 0 ? a : -a) : gcd(b, a % b);
-	}
-
-	void reduce()
-	{
-		int gcd{ Fraction::gcd(m_numerator, m_denominator) };
-		m_numerator /= gcd;
-		m_denominator /= gcd;
-	}
+	std::string m_make;
+	std::string m_model;
 
 public:
-	Fraction(int numerator = 0, int denominator = 1) :
-		m_numerator{ numerator }, m_denominator{ denominator }
+	Car(std::string make, std::string model)
+		: m_make(make), m_model(model)
 	{
-		reduce();
 	}
 
-	friend Fraction operator*(const Fraction &x, const Fraction &y);
-	friend Fraction operator*(const Fraction &x, int y);
-	friend Fraction operator*(int x, const Fraction &y);
-
-	void print() const
-	{
-		std::cout << m_numerator << "/" << m_denominator << "\n";
-	}
+	friend bool operator== (const Car &c1, const Car &c2);
+	friend bool operator!= (const Car &c1, const Car &c2);
+	friend bool operator< (const Car &c1, const Car &c2);
+	friend std::ostream& operator<<(std::ostream &out, const Car&c1);
 };
 
-Fraction operator*(const Fraction &x, const Fraction &y)
+bool operator== (const Car &c1, const Car &c2)
 {
-	int numerator{ x.m_numerator * y.m_numerator };
-	int denominator{ x.m_denominator * y.m_denominator };
-	return Fraction(numerator, denominator);
+	return (c1.m_make == c2.m_make &&
+		c1.m_model == c2.m_model);
 }
 
-Fraction operator*(const Fraction &x, int y)
+bool operator!= (const Car &c1, const Car &c2)
 {
-	return Fraction(x.m_numerator * y, x.m_denominator);
+	return !(c1 == c2);
 }
 
-Fraction operator*(int x, const Fraction &y)
+bool operator< (const Car &c1, const Car &c2)
 {
-	return operator*(y, x);
+	return c1.m_make == c2.m_make ? c1.m_model < c2.m_model : c1.m_make < c2.m_make;
+}
+
+std::ostream& operator<<(std::ostream &out, const Car &c1)
+{
+	out << "(" << c1.m_make << ", " << c1.m_model << ")";
+	
+	return out;
 }
 
 int main()
 {
-	Fraction f1(2, 5);
-	f1.print();
+	std::vector<Car> v;
+	v.push_back(Car("Toyota", "Corolla"));
+	v.push_back(Car("Honda", "Accord"));
+	v.push_back(Car("Toyota", "Camry"));
+	v.push_back(Car("Honda", "Civic"));
 
-	Fraction f2(3, 8);
-	f2.print();
+	std::sort(v.begin(), v.end()); // requires an overloaded operator<
 
-	Fraction f3 = f1 * f2;
-	f3.print();
+	for (auto &car : v)
+		std::cout << car << '\n'; // requires an overloaded operator<<
 
-	Fraction f4 = f1 * 2;
-	f4.print();
-
-	Fraction f5 = 2 * f2;
-	f5.print();
-
-	Fraction f6 = Fraction(1, 2) * Fraction(2, 3) * Fraction(3, 4);
-	f6.print();
+	return 0;
 }
