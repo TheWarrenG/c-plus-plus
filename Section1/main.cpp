@@ -1,35 +1,50 @@
 #include <iostream>
-#include <string>
-#include <cassert>
+#include <cstdint>
 
-class Mystring
+class Average
 {
 private:
-	std::string m_string;
+	int32_t m_sum{ 0 };
+	int8_t m_len{ 0 };
 
 public:
-	Mystring(const std::string string) : m_string{ string }
+	Average& operator+=(int x)
 	{
-	
+		m_sum += x;
+		m_len += 1;
+		return *this;
 	}
 
-	std::string operator()(int start, int len);
+	friend std::ostream& operator<<(std::ostream &out, const Average &avg);
 };
 
-std::string Mystring::operator()(int start, int len)
+std::ostream& operator<<(std::ostream &out, const Average &avg)
 {
-	std::string result{ "" };
-	for (int i = 0; i < len; ++i)
-	{
-		result += m_string[start + i];
-	}
-	return result;
+	out << static_cast<double>(avg.m_sum) / avg.m_len;
+	return out;
 }
 
 int main()
 {
-	Mystring string("Hello, world!");
-	std::cout << string(7, 5); // start at index 7 and return 5 characters
+	Average avg;
+
+	avg += 4;
+	std::cout << avg << '\n'; // 4 / 1 = 4
+
+	avg += 8;
+	std::cout << avg << '\n'; // (4 + 8) / 2 = 6
+
+	avg += 24;
+	std::cout << avg << '\n'; // (4 + 8 + 24) / 3 = 12
+
+	avg += -10;
+	std::cout << avg << '\n'; // (4 + 8 + 24 - 10) / 4 = 6.5
+
+	(avg += 6) += 10; // 2 calls chained together
+	std::cout << avg << '\n'; // (4 + 8 + 24 - 10 + 6 + 10) / 6 = 7
+
+	Average copy = avg;
+	std::cout << copy << '\n';
 
 	return 0;
 }
