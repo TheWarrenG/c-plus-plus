@@ -1,47 +1,35 @@
 #include <iostream>
 #include <string>
-#include <vector>
+#include <cassert>
 
-struct StudentGrade
-{
-	std::string name;
-	char grade;
-};
-
-class GradeMap
+class Mystring
 {
 private:
-	std::vector<StudentGrade> m_map;
+	std::string m_string;
 
 public:
-	GradeMap()
+	Mystring(const std::string string) : m_string{ string }
 	{
-
+	
 	}
 
-	char& operator[](const std::string index);
+	std::string operator()(int start, int len);
 };
 
-char& GradeMap::operator[](const std::string index)
+std::string Mystring::operator()(int start, int len)
 {
-	for (auto &ref : m_map)
+	std::string result{ "" };
+	for (int i = 0; i < len; ++i)
 	{
-		if (index == ref.name)
-			return ref.grade;
+		result += m_string[start + i];
 	}
-
-	m_map.push_back(StudentGrade{ index });
-	return m_map.back().grade;
-
+	return result;
 }
 
 int main()
 {
-	GradeMap grades;
-	grades["Joe"] = 'A';
-	grades["Frank"] = 'B';
-	std::cout << "Joe has a grade of " << grades["Joe"] << '\n';
-	std::cout << "Frank has a grade of " << grades["Frank"] << '\n';
+	Mystring string("Hello, world!");
+	std::cout << string(7, 5); // start at index 7 and return 5 characters
 
 	return 0;
 }
