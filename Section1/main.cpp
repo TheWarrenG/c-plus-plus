@@ -1,50 +1,93 @@
 #include <iostream>
-#include <cstdint>
+#include <cassert>
 
-class Average
+class IntArray
 {
 private:
-	int32_t m_sum{ 0 };
-	int8_t m_len{ 0 };
+	int* m_array;
+	int m_size{ 0 };
 
 public:
-	Average& operator+=(int x)
+	IntArray(int x)
 	{
-		m_sum += x;
-		m_len += 1;
+		m_array = new int[x];
+		m_size = x;
+	}
+
+	int& operator[](int x)
+	{
+		assert(x < m_size);
+
+		return m_array[x];
+	}
+
+	IntArray(const IntArray &intArray)
+	{
+		delete[] m_array;
+		
+		m_size = intArray.m_size;
+		m_array = new int[intArray.m_size];
+		for (int i = 0; i < m_size; ++i)
+		{
+			m_array[i] = intArray.m_array[i];
+		}
+	}
+
+	IntArray& operator=(const IntArray &intArray)
+	{
+		if (this == &intArray)
+			return *this;
+
+		delete[] m_array;
+
+		m_size = intArray.m_size;
+		m_array = new int[intArray.m_size];
+		for (int i = 0; i < m_size; ++i)
+		{
+			m_array[i] = intArray.m_array[i];
+		}
+
 		return *this;
 	}
 
-	friend std::ostream& operator<<(std::ostream &out, const Average &avg);
+	~IntArray()
+	{
+		delete[] m_array;
+	}
+
+	friend std::ostream& operator<<(std::ostream &out, IntArray &intArray);
 };
 
-std::ostream& operator<<(std::ostream &out, const Average &avg)
+std::ostream& operator<<(std::ostream &out, IntArray &intArray)
 {
-	out << static_cast<double>(avg.m_sum) / avg.m_len;
+	for (int i = 0; i < intArray.m_size; ++i)
+		out << intArray.m_array[i] << " ";
+	
 	return out;
+}
+
+IntArray fillArray()
+{
+	IntArray a(5);
+	a[0] = 5;
+	a[1] = 8;
+	a[2] = 2;
+	a[3] = 3;
+	a[4] = 6;
+
+	return a;
 }
 
 int main()
 {
-	Average avg;
+	IntArray a = fillArray();
+	std::cout << a << '\n';
 
-	avg += 4;
-	std::cout << avg << '\n'; // 4 / 1 = 4
+	IntArray b(1);
+	a = a;
+	b = a;
 
-	avg += 8;
-	std::cout << avg << '\n'; // (4 + 8) / 2 = 6
-
-	avg += 24;
-	std::cout << avg << '\n'; // (4 + 8 + 24) / 3 = 12
-
-	avg += -10;
-	std::cout << avg << '\n'; // (4 + 8 + 24 - 10) / 4 = 6.5
-
-	(avg += 6) += 10; // 2 calls chained together
-	std::cout << avg << '\n'; // (4 + 8 + 24 - 10 + 6 + 10) / 6 = 7
-
-	Average copy = avg;
-	std::cout << copy << '\n';
+	std::cout << b << '\n';
 
 	return 0;
 }
