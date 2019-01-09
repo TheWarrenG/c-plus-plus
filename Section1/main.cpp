@@ -1,80 +1,83 @@
+#include <cassert> // for assert()
+#include <initializer_list> // for std::initializer_list
 #include <iostream>
-#include <string>
-#include <vector>
 
-class Teacher
+class IntArray
 {
 private:
-	std::string m_name;
+	int m_length;
+	int *m_data;
 
 public:
-	Teacher(std::string name)
-		: m_name(name)
+	IntArray() :
+		m_length(0), m_data(nullptr)
 	{
 	}
 
-	std::string getName() { return m_name; }
+	IntArray(int length) :
+		m_length(length)
+	{
+		m_data = new int[length];
+	}
+
+	IntArray(const std::initializer_list<int> &list) : // allow IntArray to be initialized via list initialization
+		IntArray(list.size()) // use delegating constructor to set up initial array
+	{
+		// Now initialize our array from the list
+		int count = 0;
+		for (auto &element : list)
+		{
+			m_data[count] = element;
+			++count;
+		}
+	}
+
+	~IntArray()
+	{
+		delete[] m_data;
+		// we don't need to set m_data to null or m_length to 0 here, since the object will be destroyed immediately after this function anyway
+	}
+
+	int& operator[](int index)
+	{
+		assert(index >= 0 && index < m_length);
+		return m_data[index];
+	}
+
+	IntArray& operator=(const std::initializer_list<int> &list)
+	{
+		if (static_cast<size_t>(m_length) < list.size())
+		{
+			delete[] m_data;
+			m_length = list.size();
+			m_data = new int[list.size()];
+		}
+
+		int count = 0;
+		for (auto &element : list)
+		{
+			m_data[count] = element;
+			++count;
+		}
+
+		return *this;
+	}
+
+	int getLength() { return m_length; }
 };
-
-class Department
-{
-private:
-	std::vector<Teacher*> m_teachers; // This dept holds only one teacher for simplicity, but it could hold many teachers
-
-public:
-	Department()
-	{
-	}
-
-	void add(Teacher *teacher)
-	{
-		m_teachers.push_back(teacher);
-	}
-
-	friend std::ostream& operator<<(std::ostream& out, Department& dept);
-};
-
-std::ostream& operator<<(std::ostream& out, Department& dept)
-{
-	out << "Department: ";
-
-	using index_t = std::vector<Teacher*>::size_type;
-	for (index_t i = 0; i < dept.m_teachers.size(); ++i)
-	{
-		out << dept.m_teachers[i]->getName() << ' ';
-	}
-
-	out << "\n";
-
-	return out;
-}
 
 int main()
 {
-	// Create a teacher outside the scope of the Department
-	Teacher *t1 = new Teacher("Bob"); // create a teacher
-	Teacher *t2 = new Teacher("Frank");
-	Teacher *t3 = new Teacher("Beth");
+	IntArray array{ 5, 4, 3, 2, 1 }; // initializer list
+	for (int count = 0; count < array.getLength(); ++count)
+		std::cout << array[count] << ' ';
 
-	{
-		// Create a department and use the constructor parameter to pass
-		// the teacher to it.
-		Department dept; // create an empty Department
-		dept.add(t1);
-		dept.add(t2);
-		dept.add(t3);
+	std::cout << '\n';
 
-		std::cout << dept;
+	array = { 1, 3, 5, 7, 9, 11 };
 
-	} // dept goes out of scope here and is destroyed
-
-	std::cout << t1->getName() << " still exists!\n";
-	std::cout << t2->getName() << " still exists!\n";
-	std::cout << t3->getName() << " still exists!\n";
-
-	delete t1;
-	delete t2;
-	delete t3;
+	for (int count = 0; count < array.getLength(); ++count)
+		std::cout << array[count] << ' ';
 
 	return 0;
 }
