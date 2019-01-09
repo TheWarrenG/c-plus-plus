@@ -1,83 +1,78 @@
-#include <cassert> // for assert()
-#include <initializer_list> // for std::initializer_list
 #include <iostream>
+#include <string>
 
-class IntArray
+class Fruit
 {
 private:
-	int m_length;
-	int *m_data;
+	std::string m_name;
+	std::string m_color;
 
 public:
-	IntArray() :
-		m_length(0), m_data(nullptr)
+	Fruit(std::string name, std::string color) : m_name{ name }, m_color{ color }
 	{
 	}
 
-	IntArray(int length) :
-		m_length(length)
+	const std::string getName() const
 	{
-		m_data = new int[length];
+		return m_name;
 	}
 
-	IntArray(const std::initializer_list<int> &list) : // allow IntArray to be initialized via list initialization
-		IntArray(list.size()) // use delegating constructor to set up initial array
+	const std::string getColor() const
 	{
-		// Now initialize our array from the list
-		int count = 0;
-		for (auto &element : list)
-		{
-			m_data[count] = element;
-			++count;
-		}
+		return m_color;
 	}
-
-	~IntArray()
-	{
-		delete[] m_data;
-		// we don't need to set m_data to null or m_length to 0 here, since the object will be destroyed immediately after this function anyway
-	}
-
-	int& operator[](int index)
-	{
-		assert(index >= 0 && index < m_length);
-		return m_data[index];
-	}
-
-	IntArray& operator=(const std::initializer_list<int> &list)
-	{
-		if (static_cast<size_t>(m_length) < list.size())
-		{
-			delete[] m_data;
-			m_length = list.size();
-			m_data = new int[list.size()];
-		}
-
-		int count = 0;
-		for (auto &element : list)
-		{
-			m_data[count] = element;
-			++count;
-		}
-
-		return *this;
-	}
-
-	int getLength() { return m_length; }
 };
+
+class Apple: public Fruit
+{
+private:
+	double m_fiber;
+
+public:
+	Apple(std::string name, std::string color, double fiber):
+		Fruit(name, color), m_fiber{ fiber }
+	{
+	}
+
+	const double getFiber() const
+	{
+		return m_fiber;
+	}
+
+	friend std::ostream& operator<<(std::ostream &out, const Apple &apple);
+};
+
+class Banana : public Fruit
+{
+public:
+	Banana(std::string name, std::string color) : Fruit(name, color)
+	{
+	}
+
+	friend std::ostream& operator<<(std::ostream &out, const Banana &banana);
+};
+
+std::ostream& operator<<(std::ostream &out, const Apple &apple)
+{
+	out << "Apple(" << apple.getName() << ", " << apple.getColor() << ", " << apple.getFiber() << ")\n";
+
+	return out;
+}
+
+std::ostream& operator<<(std::ostream &out, const Banana &banana)
+{
+	out << "Banana(" << banana.getName() << ", " << banana.getColor() << ")\n";
+
+	return out;
+}
 
 int main()
 {
-	IntArray array{ 5, 4, 3, 2, 1 }; // initializer list
-	for (int count = 0; count < array.getLength(); ++count)
-		std::cout << array[count] << ' ';
+	const Apple a("Red delicious", "red", 4.2);
+	std::cout << a;
 
-	std::cout << '\n';
-
-	array = { 1, 3, 5, 7, 9, 11 };
-
-	for (int count = 0; count < array.getLength(); ++count)
-		std::cout << array[count] << ' ';
+	const Banana b("Cavendish", "yellow");
+	std::cout << b;
 
 	return 0;
 }
