@@ -1,112 +1,80 @@
 #include <iostream>
-#include <cstdint>
-#include <cmath>
+#include <string>
+#include <vector>
 
-class FixedPoint2
+class Teacher
 {
 private:
-	int16_t m_integer{ 0 };
-	int8_t m_decimal{ 0 };
+	std::string m_name;
 
 public:
-	FixedPoint2(int16_t integer = 0, int8_t decimal = 0) :
-		m_integer{ integer }, m_decimal{ decimal }
+	Teacher(std::string name)
+		: m_name(name)
 	{
-		while (m_decimal > 99)
-		{
-			m_decimal -= 100;
-			m_integer += 1;
-		}
-
-		while (m_decimal < -99)
-		{
-			m_decimal += 100;
-			m_integer -= 1;
-		}
-
-		if (m_integer < 0 && m_decimal > 0)
-			m_decimal = -m_decimal;
-		else if (m_integer > 0 && m_decimal < 0)
-			m_integer = -m_integer;
 	}
 
-	FixedPoint2(double d)
-	{
-		m_integer = static_cast<int16_t>(d);
-		
-		m_decimal = static_cast<int8_t>(round(100 * (d - m_integer)));
-	}
-	
-	operator double() const
-	{
-		return m_integer + 0.01 * m_decimal;
-	}
-
-	FixedPoint2 operator-()
-	{
-		return FixedPoint2(-m_integer, -m_decimal);
-	}
-
-	friend bool operator==(const FixedPoint2 &f1, const FixedPoint2 &f2);
-	friend FixedPoint2 operator+(const FixedPoint2 &f1, const FixedPoint2 &f2);
-	friend std::istream& operator>>(std::istream &in, FixedPoint2 &f1);
+	std::string getName() { return m_name; }
 };
 
-std::ostream& operator<<(std::ostream &out, const FixedPoint2 &f)
+class Department
 {
-	out << static_cast<double>(f);
+private:
+	std::vector<Teacher*> m_teachers; // This dept holds only one teacher for simplicity, but it could hold many teachers
+
+public:
+	Department()
+	{
+	}
+
+	void add(Teacher *teacher)
+	{
+		m_teachers.push_back(teacher);
+	}
+
+	friend std::ostream& operator<<(std::ostream& out, Department& dept);
+};
+
+std::ostream& operator<<(std::ostream& out, Department& dept)
+{
+	out << "Department: ";
+
+	using index_t = std::vector<Teacher*>::size_type;
+	for (index_t i = 0; i < dept.m_teachers.size(); ++i)
+	{
+		out << dept.m_teachers[i]->getName() << ' ';
+	}
+
+	out << "\n";
 
 	return out;
 }
 
-std::istream& operator>>(std::istream &in, FixedPoint2 &f1)
-{
-	double d;
-	in >> d;
-	f1 = FixedPoint2(d);
-
-	return in;
-}
-
-bool operator==(const FixedPoint2 &f1, const FixedPoint2 &f2)
-{
-	return (f1.m_integer == f2.m_integer && f1.m_decimal == f2.m_decimal);
-}
-
-FixedPoint2 operator+(const FixedPoint2 &f1, const FixedPoint2 &f2)
-{
-	double d{ static_cast<double>(f1) + static_cast<double>(f2) };
-	return FixedPoint2(d);
-}
-
-
-void testAddition()
-{
-	// h/t to reader Sharjeel Safdar for this function
-	std::cout << std::boolalpha;
-	std::cout << (FixedPoint2(0.75) + FixedPoint2(1.23) == FixedPoint2(1.98)) << '\n'; // both positive, no decimal overflow
-	std::cout << (FixedPoint2(0.75) + FixedPoint2(1.50) == FixedPoint2(2.25)) << '\n'; // both positive, with decimal overflow
-	std::cout << (FixedPoint2(-0.75) + FixedPoint2(-1.23) == FixedPoint2(-1.98)) << '\n'; // both negative, no decimal overflow
-	std::cout << (FixedPoint2(-0.75) + FixedPoint2(-1.50) == FixedPoint2(-2.25)) << '\n'; // both negative, with decimal overflow
-	std::cout << (FixedPoint2(0.75) + FixedPoint2(-1.23) == FixedPoint2(-0.48)) << '\n'; // second negative, no decimal overflow
-	std::cout << (FixedPoint2(0.75) + FixedPoint2(-1.50) == FixedPoint2(-0.75)) << '\n'; // second negative, possible decimal overflow
-	std::cout << (FixedPoint2(-0.75) + FixedPoint2(1.23) == FixedPoint2(0.48)) << '\n'; // first negative, no decimal overflow
-	std::cout << (FixedPoint2(-0.75) + FixedPoint2(1.50) == FixedPoint2(0.75)) << '\n'; // first negative, possible decimal overflow
-}
-
 int main()
 {
-	testAddition();
+	// Create a teacher outside the scope of the Department
+	Teacher *t1 = new Teacher("Bob"); // create a teacher
+	Teacher *t2 = new Teacher("Frank");
+	Teacher *t3 = new Teacher("Beth");
 
-	FixedPoint2 a(-0.48);
-	std::cout << a << '\n';
+	{
+		// Create a department and use the constructor parameter to pass
+		// the teacher to it.
+		Department dept; // create an empty Department
+		dept.add(t1);
+		dept.add(t2);
+		dept.add(t3);
 
-	std::cout << -a << '\n';
+		std::cout << dept;
 
-	std::cout << "Enter a number: "; // enter 5.678
-	std::cin >> a;
+	} // dept goes out of scope here and is destroyed
 
-	std::cout << "You entered: " << a << '\n';
+	std::cout << t1->getName() << " still exists!\n";
+	std::cout << t2->getName() << " still exists!\n";
+	std::cout << t3->getName() << " still exists!\n";
+
+	delete t1;
+	delete t2;
+	delete t3;
 
 	return 0;
 }
