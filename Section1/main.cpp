@@ -1,93 +1,112 @@
 #include <iostream>
-#include <cassert>
+#include <cstdint>
+#include <cmath>
 
-class IntArray
+class FixedPoint2
 {
 private:
-	int* m_array;
-	int m_size{ 0 };
+	int16_t m_integer{ 0 };
+	int8_t m_decimal{ 0 };
 
 public:
-	IntArray(int x)
+	FixedPoint2(int16_t integer = 0, int8_t decimal = 0) :
+		m_integer{ integer }, m_decimal{ decimal }
 	{
-		m_array = new int[x];
-		m_size = x;
+		while (m_decimal > 99)
+		{
+			m_decimal -= 100;
+			m_integer += 1;
+		}
+
+		while (m_decimal < -99)
+		{
+			m_decimal += 100;
+			m_integer -= 1;
+		}
+
+		if (m_integer < 0 && m_decimal > 0)
+			m_decimal = -m_decimal;
+		else if (m_integer > 0 && m_decimal < 0)
+			m_integer = -m_integer;
 	}
 
-	int& operator[](int x)
+	FixedPoint2(double d)
 	{
-		assert(x < m_size);
-
-		return m_array[x];
-	}
-
-	IntArray(const IntArray &intArray)
-	{
-		delete[] m_array;
+		m_integer = static_cast<int16_t>(d);
 		
-		m_size = intArray.m_size;
-		m_array = new int[intArray.m_size];
-		for (int i = 0; i < m_size; ++i)
-		{
-			m_array[i] = intArray.m_array[i];
-		}
+		m_decimal = static_cast<int8_t>(round(100 * (d - m_integer)));
 	}
-
-	IntArray& operator=(const IntArray &intArray)
+	
+	operator double() const
 	{
-		if (this == &intArray)
-			return *this;
-
-		delete[] m_array;
-
-		m_size = intArray.m_size;
-		m_array = new int[intArray.m_size];
-		for (int i = 0; i < m_size; ++i)
-		{
-			m_array[i] = intArray.m_array[i];
-		}
-
-		return *this;
+		return m_integer + 0.01 * m_decimal;
 	}
 
-	~IntArray()
+	FixedPoint2 operator-()
 	{
-		delete[] m_array;
+		return FixedPoint2(-m_integer, -m_decimal);
 	}
 
-	friend std::ostream& operator<<(std::ostream &out, IntArray &intArray);
+	friend bool operator==(const FixedPoint2 &f1, const FixedPoint2 &f2);
+	friend FixedPoint2 operator+(const FixedPoint2 &f1, const FixedPoint2 &f2);
+	friend std::istream& operator>>(std::istream &in, FixedPoint2 &f1);
 };
 
-std::ostream& operator<<(std::ostream &out, IntArray &intArray)
+std::ostream& operator<<(std::ostream &out, const FixedPoint2 &f)
 {
-	for (int i = 0; i < intArray.m_size; ++i)
-		out << intArray.m_array[i] << " ";
-	
+	out << static_cast<double>(f);
+
 	return out;
 }
 
-IntArray fillArray()
+std::istream& operator>>(std::istream &in, FixedPoint2 &f1)
 {
-	IntArray a(5);
-	a[0] = 5;
-	a[1] = 8;
-	a[2] = 2;
-	a[3] = 3;
-	a[4] = 6;
+	double d;
+	in >> d;
+	f1 = FixedPoint2(d);
 
-	return a;
+	return in;
+}
+
+bool operator==(const FixedPoint2 &f1, const FixedPoint2 &f2)
+{
+	return (f1.m_integer == f2.m_integer && f1.m_decimal == f2.m_decimal);
+}
+
+FixedPoint2 operator+(const FixedPoint2 &f1, const FixedPoint2 &f2)
+{
+	double d{ static_cast<double>(f1) + static_cast<double>(f2) };
+	return FixedPoint2(d);
+}
+
+
+void testAddition()
+{
+	// h/t to reader Sharjeel Safdar for this function
+	std::cout << std::boolalpha;
+	std::cout << (FixedPoint2(0.75) + FixedPoint2(1.23) == FixedPoint2(1.98)) << '\n'; // both positive, no decimal overflow
+	std::cout << (FixedPoint2(0.75) + FixedPoint2(1.50) == FixedPoint2(2.25)) << '\n'; // both positive, with decimal overflow
+	std::cout << (FixedPoint2(-0.75) + FixedPoint2(-1.23) == FixedPoint2(-1.98)) << '\n'; // both negative, no decimal overflow
+	std::cout << (FixedPoint2(-0.75) + FixedPoint2(-1.50) == FixedPoint2(-2.25)) << '\n'; // both negative, with decimal overflow
+	std::cout << (FixedPoint2(0.75) + FixedPoint2(-1.23) == FixedPoint2(-0.48)) << '\n'; // second negative, no decimal overflow
+	std::cout << (FixedPoint2(0.75) + FixedPoint2(-1.50) == FixedPoint2(-0.75)) << '\n'; // second negative, possible decimal overflow
+	std::cout << (FixedPoint2(-0.75) + FixedPoint2(1.23) == FixedPoint2(0.48)) << '\n'; // first negative, no decimal overflow
+	std::cout << (FixedPoint2(-0.75) + FixedPoint2(1.50) == FixedPoint2(0.75)) << '\n'; // first negative, possible decimal overflow
 }
 
 int main()
 {
-	IntArray a = fillArray();
+	testAddition();
+
+	FixedPoint2 a(-0.48);
 	std::cout << a << '\n';
 
-	IntArray b(1);
-	a = a;
-	b = a;
+	std::cout << -a << '\n';
 
-	std::cout << b << '\n';
+	std::cout << "Enter a number: "; // enter 5.678
+	std::cin >> a;
+
+	std::cout << "You entered: " << a << '\n';
 
 	return 0;
 }
