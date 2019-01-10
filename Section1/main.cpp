@@ -1,78 +1,56 @@
-#include <iostream>
 #include <string>
+#include <iostream>
 
-class Fruit
+class Animal
 {
-private:
+protected:
 	std::string m_name;
-	std::string m_color;
+	std::string m_speak;
+
+	// We're making this constructor protected because
+	// we don't want people creating Animal objects directly,
+	// but we still want derived classes to be able to use it.
+	Animal(std::string name, std::string speak)
+		: m_name(name), m_speak(speak)
+	{
+	}
 
 public:
-	Fruit(std::string name, std::string color) : m_name{ name }, m_color{ color }
-	{
-	}
+	std::string getName() { return m_name; }
+	std::string speak() { return m_speak; }
+};
 
-	const std::string getName() const
+class Cat : public Animal
+{
+public:
+	Cat(std::string name)
+		: Animal(name, "Meow")
 	{
-		return m_name;
-	}
-
-	const std::string getColor() const
-	{
-		return m_color;
 	}
 };
 
-class Apple: public Fruit
-{
-private:
-	double m_fiber;
-
-public:
-	Apple(std::string name, std::string color, double fiber):
-		Fruit(name, color), m_fiber{ fiber }
-	{
-	}
-
-	const double getFiber() const
-	{
-		return m_fiber;
-	}
-
-	friend std::ostream& operator<<(std::ostream &out, const Apple &apple);
-};
-
-class Banana : public Fruit
+class Dog : public Animal
 {
 public:
-	Banana(std::string name, std::string color) : Fruit(name, color)
+	Dog(std::string name)
+		: Animal(name, "Woof")
 	{
 	}
-
-	friend std::ostream& operator<<(std::ostream &out, const Banana &banana);
 };
-
-std::ostream& operator<<(std::ostream &out, const Apple &apple)
-{
-	out << "Apple(" << apple.getName() << ", " << apple.getColor() << ", " << apple.getFiber() << ")\n";
-
-	return out;
-}
-
-std::ostream& operator<<(std::ostream &out, const Banana &banana)
-{
-	out << "Banana(" << banana.getName() << ", " << banana.getColor() << ")\n";
-
-	return out;
-}
 
 int main()
 {
-	const Apple a("Red delicious", "red", 4.2);
-	std::cout << a;
+	Cat cat("Fred");
+	std::cout << "cat is named " << cat.getName() << ", and it says " << cat.speak() << '\n';
 
-	const Banana b("Cavendish", "yellow");
-	std::cout << b;
+	Dog dog("Garbo");
+	std::cout << "dog is named " << dog.getName() << ", and it says " << dog.speak() << '\n';
+
+	Animal *pAnimal = &cat;
+	std::cout << "pAnimal is named " << pAnimal->getName() << ", and it says " << pAnimal->speak() << '\n';
+
+	pAnimal = &dog;
+	std::cout << "pAnimal is named " << pAnimal->getName() << ", and it says " << pAnimal->speak() << '\n';
 
 	return 0;
 }
