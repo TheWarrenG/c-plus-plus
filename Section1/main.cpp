@@ -1,4 +1,4 @@
-#include <string>
+#include <vector>
 #include <iostream>
 
 class Shape
@@ -43,9 +43,10 @@ private:
 	Point m_p3;
 
 public:
-	Triangle(Point p1, Point p2, Point p3)
+	Triangle(const Point &p1, const Point &p2, const Point &p3)
 		: m_p1{ p1 }, m_p2{ p2 }, m_p3{ p3 }
-	{}
+	{
+	}
 
 	virtual std::ostream& print(std::ostream &out) const override
 	{
@@ -62,8 +63,10 @@ private:
 	int m_radius;
 
 public:
-	Circle(Point center, int radius) : m_center{ center }, m_radius{ radius }
-	{}
+	Circle(const Point &center, int radius)
+		: m_center{ center }, m_radius{ radius }
+	{
+	}
 
 	virtual std::ostream& print(std::ostream &out) const override
 	{
@@ -71,15 +74,41 @@ public:
 
 		return out;
 	}
+
+	int getRadius() const {	return m_radius; }
 };
+
+int getLargestRadius(const std::vector<Shape*> v)
+{
+	int largetRadius{ 0 };
+	for (const auto &ref : v)
+	{
+		Circle *c{ dynamic_cast<Circle*>(ref) };
+		
+		if (c)
+		{
+			int currentRadius{ c->getRadius() };
+			if (currentRadius > largetRadius)
+				largetRadius = currentRadius;
+		}
+	}
+
+	return largetRadius;
+}
 
 int main()
 {
-	Circle c(Point(1, 2, 3), 7);
-	std::cout << c << '\n';
+	std::vector<Shape*> v;
+	v.push_back(new Circle(Point(1, 2, 3), 7));
+	v.push_back(new Triangle(Point(1, 2, 3), Point(4, 5, 6), Point(7, 8, 9)));
+	v.push_back(new Circle(Point(4, 5, 6), 3));
 
-	Triangle t(Point(1, 2, 3), Point(4, 5, 6), Point(7, 8, 9));
-	std::cout << t << '\n';
+	for (const auto &ref : v)
+	{
+		std::cout << *ref << "\n";
+	}
 
-	return 0;
+	std::cout << "The largest radius is: " << getLargestRadius(v) << '\n'; // write this function
+
+// delete each element in the vector here
 }
