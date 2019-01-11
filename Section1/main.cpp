@@ -1,56 +1,85 @@
 #include <string>
 #include <iostream>
 
-class Animal
+class Shape
 {
-protected:
-	std::string m_name;
-	std::string m_speak;
+public:
+	virtual std::ostream& print(std::ostream &out) const = 0;
 
-	// We're making this constructor protected because
-	// we don't want people creating Animal objects directly,
-	// but we still want derived classes to be able to use it.
-	Animal(std::string name, std::string speak)
-		: m_name(name), m_speak(speak)
+	friend std::ostream& operator<<(std::ostream &out, const Shape &shape)
 	{
+		return shape.print(out);
 	}
 
-public:
-	std::string getName() { return m_name; }
-	std::string speak() { return m_speak; }
+	virtual ~Shape() {}
 };
 
-class Cat : public Animal
+class Point
 {
+private:
+	int m_x = 0;
+	int m_y = 0;
+	int m_z = 0;
+
 public:
-	Cat(std::string name)
-		: Animal(name, "Meow")
+	Point(int x, int y, int z)
+		: m_x(x), m_y(y), m_z(z)
 	{
+
+	}
+
+	friend std::ostream& operator<<(std::ostream &out, const Point &p)
+	{
+		out << "Point(" << p.m_x << ", " << p.m_y << ", " << p.m_z << ")";
+		return out;
 	}
 };
 
-class Dog : public Animal
+class Triangle : public Shape
 {
+private:
+	Point m_p1;
+	Point m_p2;
+	Point m_p3;
+
 public:
-	Dog(std::string name)
-		: Animal(name, "Woof")
+	Triangle(Point p1, Point p2, Point p3)
+		: m_p1{ p1 }, m_p2{ p2 }, m_p3{ p3 }
+	{}
+
+	virtual std::ostream& print(std::ostream &out) const override
 	{
+		out << "Triangle(" << m_p1 << ", " << m_p2 << ", " << m_p3 << ")";
+
+		return out;
+	}
+};
+
+class Circle : public Shape
+{
+private:
+	Point m_center;
+	int m_radius;
+
+public:
+	Circle(Point center, int radius) : m_center{ center }, m_radius{ radius }
+	{}
+
+	virtual std::ostream& print(std::ostream &out) const override
+	{
+		out << "Circle(" << m_center << ", radius " << m_radius << ")";
+
+		return out;
 	}
 };
 
 int main()
 {
-	Cat cat("Fred");
-	std::cout << "cat is named " << cat.getName() << ", and it says " << cat.speak() << '\n';
+	Circle c(Point(1, 2, 3), 7);
+	std::cout << c << '\n';
 
-	Dog dog("Garbo");
-	std::cout << "dog is named " << dog.getName() << ", and it says " << dog.speak() << '\n';
-
-	Animal *pAnimal = &cat;
-	std::cout << "pAnimal is named " << pAnimal->getName() << ", and it says " << pAnimal->speak() << '\n';
-
-	pAnimal = &dog;
-	std::cout << "pAnimal is named " << pAnimal->getName() << ", and it says " << pAnimal->speak() << '\n';
+	Triangle t(Point(1, 2, 3), Point(4, 5, 6), Point(7, 8, 9));
+	std::cout << t << '\n';
 
 	return 0;
 }
