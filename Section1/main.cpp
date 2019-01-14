@@ -1,33 +1,34 @@
 #include <iostream>
 
-template<class T>
-class Pair1
+template<class T1, class T2>
+class Pair
 {
 private:
-	T m_first, m_second;
+	T1 m_first;
+	T2 m_second;
 
 public:
-	Pair1(const T& first, const T& second)
+	Pair(const T1& first, const T2& second)
 		: m_first{ first }, m_second{ second }
 	{
 	}
 
-	T& first()
+	T1& first()
 	{
 		return m_first;
 	}
 
-	const T& first() const
+	const T1& first() const
 	{
 		return m_first;
 	}
 
-	T& second()
+	T2& second()
 	{
 		return m_second;
 	}
 
-	const T& second() const
+	const T2& second() const
 	{
 		return m_second;
 	}
@@ -35,10 +36,10 @@ public:
 
 int main()
 {
-	Pair1<int> p1(5, 8);
+	Pair<int, double> p1(5, 6.7);
 	std::cout << "Pair: " << p1.first() << ' ' << p1.second() << '\n';
 
-	const Pair1<double> p2(2.3, 4.5);
+	const Pair<double, int> p2(2.3, 4);
 	std::cout << "Pair: " << p2.first() << ' ' << p2.second() << '\n';
 
 	return 0;
