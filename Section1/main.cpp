@@ -1,54 +1,49 @@
 #include <iostream>
-#include <string>
+#include <stdexcept>
 
-template<class T1, class T2>
-class Pair
+class Fraction
 {
 private:
-	T1 m_first;
-	T2 m_second;
+	int m_numerator{ 0 };
+	int m_denominator{ 1 };
 
 public:
-	Pair(const T1 &first, const T2 &second)
-		: m_first{ first }, m_second{ second }
+	Fraction(int numerator = 0, int denominator = 1)
+		: m_numerator{ numerator }, m_denominator{ denominator }
 	{
+		if (m_denominator == 0)
+			throw std::runtime_error { "Your fraction has an invalid denominator" };
 	}
 
-	T1& first()
-	{
-		return m_first;
-	}
-
-	const T1& first() const
-	{
-		return m_first;
-	}
-
-	T2& second()
-	{
-		return m_second;
-	}
-
-	const T2& second() const
-	{
-		return m_second;
-	}
+	friend std::ostream& operator<<(std::ostream& out, const Fraction &f);
 };
 
-template<class T>
-class StringValuePair : public Pair<std::string, T>
+std::ostream& operator<<(std::ostream& out, const Fraction &f)
 {
-public:
-	StringValuePair(const std::string& first, const T& second)
-		: Pair<std::string, T>(first, second)
-	{
-	}
-};
+	out << f.m_numerator << "/" << f.m_denominator << "\n";
+
+	return out;
+}
 
 int main()
 {
-	StringValuePair<int> svp("Hello", 5);
-	std::cout << "Pair: " << svp.first() << ' ' << svp.second() << '\n';
+	std::cout << "Enter the numerator: ";
+	int numerator;
+	std::cin >> numerator;
+
+	std::cout << "Enter the denominator: ";
+	int denominator;
+	std::cin >> denominator;
+
+	try
+	{
+		Fraction f{ numerator, denominator };
+		std::cout << "You entered: " << f;
+	}
+	catch(std::runtime_error error)
+	{
+		std::cout << error.what() << "\n";
+	}
 
 	return 0;
 }
